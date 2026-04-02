@@ -46,3 +46,7 @@ user_data
 
 # Cursor
 .cursorrules
+
+# Visual Studio Code
+.vscode/
+*.uid
