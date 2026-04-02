@@ -10,6 +10,7 @@ const AIResponse: GDScript = preload("res://scripts/AIResponse.gd")
 
 const CONFIG_PATH: String = "res://config/api_config.cfg"
 const SECRETS_PATH: String = "res://config/secrets.cfg"
+const LOCAL_CONFIG_PATH: String = "res://config/local_config.cfg"
 
 ## Emitted when a full, successful AI response is received, validated, and mapped. (RF15)
 signal response_received(response: AIResponse)
@@ -24,14 +25,17 @@ var _http_request: HTTPRequest
 var _api_endpoint: String = ""
 var _api_model: String = ""
 var _api_key: String = ""
+var _local_endpoint: String = ""
 var _is_requesting: bool = false
 
-# Reference to ContextBuilder resolved at runtime via the scene tree.
+# References to other Autoloads resolved at runtime via the scene tree.
 var _context_builder: Node = null
+var _mode_manager: Node = null
 
 
 func _ready() -> void:
 	_context_builder = get_node("/root/ContextBuilder")
+	_mode_manager = get_node("/root/ModeManager")
 	_load_config()
 	_setup_http_request()
 
@@ -50,9 +54,20 @@ func _load_config() -> void:
 		push_error("AIManager: API endpoint is not configured in '%s'." % CONFIG_PATH)
 
 	_load_secrets()
+	_load_local_config()
 
 	# Never print the API key, even partially.
-	print("AIManager: Config loaded. Endpoint: %s | Model: %s" % [_api_endpoint, _api_model])
+	print("AIManager: Config loaded. Cloud endpoint: %s | Model: %s" % [_api_endpoint, _api_model])
+	print("AIManager: Local endpoint: %s" % _local_endpoint)
+
+
+func _load_local_config() -> void:
+	var config: ConfigFile = ConfigFile.new()
+	var err: Error = config.load(LOCAL_CONFIG_PATH)
+	if err != OK:
+		push_error("AIManager: Could not load local config at '%s'. Error: %d" % [LOCAL_CONFIG_PATH, err])
+		return
+	_local_endpoint = config.get_value("local_server", "endpoint", "")
 
 
 func _load_secrets() -> void:
@@ -81,8 +96,14 @@ func send_message(player_input: String) -> AIResponse:
 		push_warning("AIManager: A request is already in progress. Ignoring new request.")
 		return null
 
-	if _api_endpoint.is_empty() or _api_key.is_empty():
-		var err_msg: String = "AIManager: Cannot send request — endpoint or API key is missing."
+	var is_local: bool = _mode_manager.is_local()
+	if is_local and _local_endpoint.is_empty():
+		var err_msg: String = "AIManager: Cannot send local request — local endpoint is not configured."
+		push_error(err_msg)
+		request_failed.emit(err_msg)
+		return null
+	if not is_local and (_api_endpoint.is_empty() or _api_key.is_empty()):
+		var err_msg: String = "AIManager: Cannot send cloud request — endpoint or API key is missing."
 		push_error(err_msg)
 		request_failed.emit(err_msg)
 		return null
@@ -93,7 +114,7 @@ func send_message(player_input: String) -> AIResponse:
 	_context_builder.add_user_message(player_input)
 	var messages: Array[Dictionary] = _context_builder.build_payload()
 
-	var raw_data: Dictionary = await _perform_request(messages)
+	var raw_data: Dictionary = await _perform_request(messages, _mode_manager.is_local())
 
 	var ai_response: AIResponse = null
 	if not raw_data.is_empty():
@@ -110,11 +131,19 @@ func send_message(player_input: String) -> AIResponse:
 
 
 ## Performs the actual async HTTP POST request and returns the raw parsed JSON body.
-func _perform_request(messages: Array[Dictionary]) -> Dictionary:
-	var headers: PackedStringArray = PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % _api_key,
-	])
+## Routes to the local llama-server or cloud API based on the current mode. (RF06)
+func _perform_request(messages: Array[Dictionary], use_local: bool) -> Dictionary:
+	var endpoint: String = _local_endpoint if use_local else _api_endpoint
+
+	# Local llama-server uses the OpenAI-compatible API but does not need an Auth header.
+	var headers: PackedStringArray
+	if use_local:
+		headers = PackedStringArray(["Content-Type: application/json"])
+	else:
+		headers = PackedStringArray([
+			"Content-Type: application/json",
+			"Authorization: Bearer %s" % _api_key,
+		])
 
 	# response_format forces the API to return pure JSON with no surrounding text.
 	# This is the "Structured Outputs / JSON Mode" supported by OpenAI and Groq.
@@ -126,7 +155,7 @@ func _perform_request(messages: Array[Dictionary]) -> Dictionary:
 
 	var body_json: String = JSON.stringify(body)
 	var err: Error = _http_request.request(
-		_api_endpoint,
+		endpoint,
 		headers,
 		HTTPClient.METHOD_POST,
 		body_json
