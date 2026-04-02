@@ -40,6 +40,9 @@ aibinariesllama-server-mac
 .env
 api_keys.txt
 
+# Fitxer de secrets local (mai pujar a git)
+config/secrets.cfg
+
 # Ignora logs locals d'errors generats durant les proves
 .log
 user_data
