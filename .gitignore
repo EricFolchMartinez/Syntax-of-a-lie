@@ -1,0 +1,48 @@
+# ========================================== #
+# GODOT 4.x FILES                            #
+# ========================================== #
+# Carpeta de memòria cau i importacions de Godot 4
+.godot
+
+# Si exportes el joc, ignora la carpeta d'exportacions
+export
+builds
+bin
+
+# ========================================== #
+# FITXERS DEL SISTEMA OPERATIU               #
+# ========================================== #
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+.stackdump
+Desktop.ini
+
+# ========================================== #
+# PROJECTE ESPECÍFIC D'IA (MOLT IMPORTANT)   #
+# ========================================== #
+# Ignora els models pesants d'IA. No els pugis a Git!
+.gguf
+.bin
+
+# Ignora els binaris de llama.cpp (pots comentar-ho si els vols versionar)
+aibinaries.exe
+aibinariesllama-server
+aibinariesllama-server-mac
+
+# Ignora fitxers on puguis haver guardat la teva API Key de proves per error
+.key
+.env
+api_keys.txt
+
+# Ignora logs locals d'errors generats durant les proves
+.log
+user_data
+
+# Cursor
+.cursorrules
