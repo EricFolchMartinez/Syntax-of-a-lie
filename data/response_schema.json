@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "dialogue": {
+      "type": "string",
+      "description": "The NPC's spoken response as a character in the interrogation."
+    },
+    "emotion_state": {
+      "type": "string",
+      "enum": ["neutral", "confident", "nervous", "angry", "defensive", "afraid"],
+      "description": "The emotional state of the NPC, used to drive sprite/animation changes."
+    },
+    "lies_detected": {
+      "type": "boolean",
+      "description": "True if the NPC's dialogue contains a direct lie, false otherwise."
+    },
+    "clue_revealed": {
+      "type": ["string", "null"],
+      "description": "A short description of the clue revealed, or null if no clue was revealed."
+    }
+  },
+  "required": ["dialogue", "emotion_state", "lies_detected", "clue_revealed"],
+  "additionalProperties": false
+}
