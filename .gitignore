@@ -30,10 +30,11 @@ Desktop.ini
 .gguf
 .bin
 
-# Ignora els binaris de llama.cpp (pots comentar-ho si els vols versionar)
-aibinaries.exe
-aibinariesllama-server
-aibinariesllama-server-mac
+# Ignora els binaris de llama.cpp i les seves DLLs (pots comentar-ho si els vols versionar)
+ai/binaries/llama-server.exe
+ai/binaries/llama-server
+ai/binaries/llama-server-mac
+ai/binaries/*.dll
 
 # Ignora fitxers on puguis haver guardat la teva API Key de proves per error
 .key
