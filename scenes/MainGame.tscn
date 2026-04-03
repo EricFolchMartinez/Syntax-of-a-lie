@@ -1,0 +1,103 @@
+[gd_scene load_steps=5 format=3 uid="uid://cgu328qqthxmw"]
+
+[ext_resource type="Script" uid="uid://ctfgfcaj3wfhc" path="res://scenes/MainGame.gd" id="1_hat22"]
+[ext_resource type="Script" uid="uid://cjfg7oh5kr8mg" path="res://scripts/ThinkingIndicator.gd" id="2_t4bxf"]
+[ext_resource type="Script" uid="uid://cmo6kxw6njkkc" path="res://scripts/TypewriterController.gd" id="3_x628s"]
+[ext_resource type="Script" uid="uid://bf33xpf8njn4s" path="res://scripts/EmotionMapper.gd" id="4_7fyak"]
+
+[node name="MainGame" type="Control" node_paths=PackedStringArray("chat_history", "input_field", "send_button", "thinking_label", "npc_texture", "typewriter", "emotion_mapper")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hat22")
+chat_history = NodePath("ChatPanel/ChatScroll/ChatHistory")
+input_field = NodePath("ChatPanel/InputRow/InputField")
+send_button = NodePath("ChatPanel/InputRow/InputField/SendButton")
+thinking_label = NodePath("ChatPanel/ThinkingLabel")
+npc_texture = NodePath("NPCPanel/NPCTexture")
+typewriter = NodePath("TypewriterController")
+emotion_mapper = NodePath("EmotionMapper")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.101960786, 0.101960786, 0.18039216, 1)
+
+[node name="NPCPanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.55
+anchor_right = 1.0
+anchor_bottom = 0.85
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="NPCTexture" type="TextureRect" parent="NPCPanel"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+expand_mode = 3
+
+[node name="NPCNameLabel" type="Label" parent="NPCPanel/NPCTexture"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Viktor Hale"
+horizontal_alignment = 1
+
+[node name="ChatPanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.55
+anchor_bottom = 1.0
+offset_right = 40.0
+
+[node name="ChatScroll" type="ScrollContainer" parent="ChatPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChatHistory" type="RichTextLabel" parent="ChatPanel/ChatScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="InputRow" type="HBoxContainer" parent="ChatPanel"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="InputField" type="LineEdit" parent="ChatPanel/InputRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Ask Viktor..."
+
+[node name="SendButton" type="Button" parent="ChatPanel/InputRow/InputField"]
+layout_mode = 0
+offset_left = 617.0
+offset_top = 3.0
+offset_right = 664.0
+offset_bottom = 34.0
+text = "Send"
+
+[node name="ThinkingLabel" type="Label" parent="ChatPanel"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+text = "Viktor is thinking..."
+horizontal_alignment = 1
+script = ExtResource("2_t4bxf")
+
+[node name="TypewriterController" type="Node" parent="." node_paths=PackedStringArray("target_label")]
+script = ExtResource("3_x628s")
+target_label = NodePath("../ChatPanel/ChatScroll/ChatHistory")
+
+[node name="EmotionMapper" type="Node" parent="." node_paths=PackedStringArray("npc_texture")]
+script = ExtResource("4_7fyak")
+npc_texture = NodePath("../NPCPanel/NPCTexture")

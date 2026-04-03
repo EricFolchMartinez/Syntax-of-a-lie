@@ -1,13 +1,17 @@
 extends Node
 
 func _ready() -> void:
-	var response = await AIManager.send_message("Where were you the night Eleanor disappeared?")
-	if response == null:
-		print("TEST: Request failed.")
-		return
+	ModeManager.set_mode(ModeManager.Mode.LOCAL)
+	LocalServerManager.server_ready.connect(_on_ready)
+	LocalServerManager.server_failed.connect(_on_failed)
+	LocalServerManager.start_server()
+	await LocalServerManager.wait_for_server()
 
-	print("TEST OK")
-	print("dialogue: ", response.dialogue)
-	print("emotion_state: ", response.emotion_state)
-	print("lies_detected: ", response.lies_detected)
-	print("clue_revealed: ", response.clue_revealed)
+func _on_failed(msg: String) -> void:
+	print("=== SERVER FAILED: ", msg, " ===")
+
+func _on_ready() -> void:
+	print("=== SERVER READY ===")
+	var response = await AIManager.send_message("Where were you that night?")
+	if response:
+		response.debug_print()

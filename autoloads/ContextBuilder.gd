@@ -8,6 +8,11 @@ extends Node
 ## Each turn = 2 messages. 10 turns = 20 messages max in the sliding window.
 const MAX_MEMORY_TURNS: int = 10
 
+## Approximate token budget for the conversation history (excluding system prompt). (RNF02)
+## Estimated at ~4 characters per token (conservative average for English).
+## 2048 tokens * 4 chars = ~8192 chars max for the history window.
+const MAX_HISTORY_CHARS: int = 8192
+
 ## Holds the conversation history as an array of message dictionaries.
 ## Each entry: { "role": "user"|"assistant", "content": String }
 var _message_history: Array[Dictionary] = []
@@ -89,9 +94,29 @@ func _build_system_content() -> String:
 	return base_prompt + flags_block
 
 
-## Trims the history to stay within MAX_MEMORY_TURNS conversation turns.
-## Removes the oldest user+assistant pairs first.
+## Trims the history by both turn count and estimated token budget. (RNF02)
+## Removes the oldest messages first until both limits are satisfied.
 func _trim_history() -> void:
 	var max_messages: int = MAX_MEMORY_TURNS * 2
+
+	# First pass: trim by message count.
 	while _message_history.size() > max_messages:
 		_message_history.pop_front()
+
+	# Second pass: trim by estimated character/token budget.
+	while _estimate_history_chars() > MAX_HISTORY_CHARS and _message_history.size() > 0:
+		_message_history.pop_front()
+
+
+## Returns the total character count of all messages in history (token estimation). (RNF02)
+func _estimate_history_chars() -> int:
+	var total: int = 0
+	for msg: Dictionary in _message_history:
+		total += (msg.get("content", "") as String).length()
+	return total
+
+
+## Returns the estimated token count currently in the history window.
+## Useful for debugging. Exposed publicly for UI display if needed.
+func get_estimated_tokens() -> int:
+	return _estimate_history_chars() / 4

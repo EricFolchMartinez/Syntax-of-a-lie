@@ -2,8 +2,8 @@
 # GODOT 4.x FILES                            #
 # ========================================== #
 # Carpeta de memòria cau i importacions de Godot 4
-.godot
-
+.godot/
+*.import
 # Si exportes el joc, ignora la carpeta d'exportacions
 export
 builds
